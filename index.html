@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Studio Ionique — Production Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0c11; --panel:#13151d; --panel2:#191c27; --inset:#0e1016;
+    --line:#242838; --line2:#313650;
+    --txt:#eceef6; --mut:#969bb3; --dim:#646a86;
+    --acc:#7c5cff; --acc2:#a98bff; --accdim:#7c5cff1f;
+    --ok:#34d399; --okdim:#34d39920; --run:#38bdf8;
+    --r:13px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg); color:var(--txt); font-family:'Inter',system-ui,sans-serif; font-size:14px; -webkit-font-smoothing:antialiased; min-height:100vh}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* header */
+  header{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:26px; padding:0 26px; height:60px; background:rgba(11,12,17,.86); backdrop-filter:blur(12px); border-bottom:1px solid var(--line)}
+  .brand{display:flex; align-items:center; gap:10px}
+  .logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--acc),#4f37c9);display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px}
+  .brand b{font-weight:600; letter-spacing:.2px}
+  .brand span{color:var(--dim); font-size:12px; margin-left:2px}
+  .tabs{display:flex; gap:4px; margin-left:8px}
+  .tabs button{background:none; border:none; color:var(--mut); font-family:inherit; font-size:13.5px; font-weight:500; padding:8px 15px; border-radius:9px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:.15s}
+  .tabs button:hover{color:var(--txt); background:var(--panel)}
+  .tabs button.on{color:#fff; background:var(--accdim); box-shadow:inset 0 0 0 1px var(--line2)}
+  .tabs svg{width:16px;height:16px}
+  .hgrow{flex:1}
+  .status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut)}
+  .status .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 7px var(--ok)}
+
+  main{max-width:920px; margin:0 auto; padding:30px 26px 80px}
+  .tab{display:none} .tab.on{display:block; animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* segmented control */
+  .seg{display:inline-flex; background:var(--inset); border:1px solid var(--line); border-radius:11px; padding:4px; gap:3px; margin-bottom:22px}
+  .seg button{background:none;border:none;color:var(--mut);font-family:inherit;font-size:13px;font-weight:600;padding:8px 18px;border-radius:8px;cursor:pointer;transition:.15s}
+  .seg button.on{background:var(--panel2); color:#fff; box-shadow:0 1px 0 var(--line2)}
+
+  .pane{display:none} .pane.on{display:block; animation:fade .25s ease}
+
+  .h2{font-size:18px; font-weight:600; letter-spacing:-.2px}
+  .sub{color:var(--mut); font-size:13px; margin-top:5px; margin-bottom:22px}
+  .step-no{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--accdim);color:var(--acc2);font-size:11px;font-weight:700;margin-right:9px}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:20px; margin-bottom:16px}
+  .card.lbl{display:block}
+  label.fld{display:block; font-size:12.5px; font-weight:600; color:var(--mut); margin-bottom:8px}
+  label.fld .req{color:var(--acc2)}
+  input[type=text], textarea, select{width:100%; background:var(--inset); border:1px solid var(--line); border-radius:10px; color:var(--txt); font-family:inherit; font-size:13.5px; padding:11px 13px; outline:none; transition:.15s}
+  input[type=text]:focus, textarea:focus, select:focus{border-color:var(--acc); box-shadow:0 0 0 3px var(--accdim)}
+  textarea{resize:vertical; min-height:90px; line-height:1.55}
+  select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23969bb3' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 13px center; cursor:pointer}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+
+  /* dropzone */
+  .drop{border:1.5px dashed var(--line2); border-radius:11px; padding:26px; text-align:center; color:var(--mut); cursor:pointer; transition:.15s; background:var(--inset)}
+  .drop:hover{border-color:var(--acc); color:var(--txt); background:var(--accdim)}
+  .drop svg{width:26px;height:26px;margin-bottom:9px;opacity:.7}
+  .drop b{color:var(--txt); font-weight:600}
+  .drop.has{border-style:solid; border-color:var(--ok); color:var(--txt); background:var(--okdim)}
+
+  .btn{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,var(--acc),#5a40d6);color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:600;padding:12px 22px;border-radius:11px;cursor:pointer;transition:.15s;box-shadow:0 5px 18px var(--accdim)}
+  .btn:hover{filter:brightness(1.08); transform:translateY(-1px)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.ghost{background:var(--panel2);box-shadow:none;color:var(--txt);border:1px solid var(--line2)}
+  .btn.sm{padding:8px 14px;font-size:12.5px;border-radius:9px}
+  .btn svg{width:16px;height:16px}
+
+  .hint{font-size:12px;color:var(--dim);margin-top:9px}
+
+  /* avatar / format selectors */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .pick{position:relative;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s;background:var(--inset)}
+  .pick:hover{border-color:var(--line2)}
+  .pick.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--accdim)}
+  .pick .ph{aspect-ratio:1;display:grid;place-items:center;font-size:26px;font-weight:700;color:#fff}
+  .pick img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+  .pick .nm{padding:9px 11px;font-size:12px;font-weight:600}
+  .pick .nm small{display:block;color:var(--dim);font-weight:400;font-size:10.5px;margin-top:2px}
+  .pick .tick{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--acc);display:none;place-items:center}
+  .pick.on .tick{display:grid}
+  .pick .tick svg{width:12px;height:12px;color:#fff}
+
+  .fmt{display:flex;gap:12px}
+  .fmt .opt{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:.15s;background:var(--inset)}
+  .fmt .opt.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--accdim)}
+  .fmt .box{background:var(--line2);border-radius:4px;flex:none}
+  .fmt .opt b{font-size:13.5px} .fmt .opt span{font-size:11.5px;color:var(--dim);display:block;margin-top:2px}
+
+  /* audio player */
+  .player{display:flex;align-items:center;gap:14px;background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .player button{width:42px;height:42px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--acc),#5a40d6);color:#fff;cursor:pointer;display:grid;place-items:center;flex:none}
+  .player .wv{flex:1}
+  .player .wv img{width:100%;height:42px;object-fit:cover;opacity:.85;border-radius:4px}
+  .player .meta{font-size:11.5px;color:var(--mut);flex:none;text-align:right}
+
+  /* result reveal */
+  .result{border:1px solid var(--ok);background:var(--okdim);border-radius:var(--r);padding:18px;margin-top:18px}
+  .result .rh{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13.5px;margin-bottom:14px}
+  .result .rh .ic{width:22px;height:22px;border-radius:50%;background:var(--ok);display:grid;place-items:center}
+  .result .rh .ic svg{width:13px;height:13px;color:#06281d}
+  .result .rh .tag{margin-left:auto;font-size:11px;color:var(--mut);font-weight:500}
+
+  /* progress */
+  .proc{margin-top:18px;background:var(--inset);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+  .proc .pl{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin-bottom:12px}
+  .spin{width:16px;height:16px;border:2px solid var(--line2);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .pbar{height:6px;background:var(--bg);border-radius:6px;overflow:hidden}
+  .pbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s ease}
+  .plog{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:11px;min-height:16px}
+
+  /* video result */
+  .vid{position:relative;border-radius:12px;overflow:hidden;background:#000;border:1px solid var(--line2);margin:0 auto}
+  .vid img{width:100%;height:100%;object-fit:cover;display:block;opacity:.95}
+  .vid .play{position:absolute;inset:0;margin:auto;width:58px;height:58px;border-radius:50%;background:#000a;border:1.5px solid #fff8;display:grid;place-items:center;cursor:pointer}
+  .vid .play svg{width:22px;height:22px;color:#fff;margin-left:3px}
+  .vid .tl{position:absolute;top:10px;left:10px;font-size:10px;font-weight:600;letter-spacing:.8px;background:#000b;padding:4px 9px;border-radius:6px;border:1px solid #ffffff22;color:#cbd0e6}
+
+  /* clip tiles */
+  .clips{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
+  .clip{border:1px solid var(--line2);border-radius:11px;overflow:hidden;background:var(--inset)}
+  .clip .thumb{aspect-ratio:16/9;position:relative;background:linear-gradient(135deg,#1d2030,#252a3d);display:grid;place-items:center}
+  .clip .thumb svg{width:26px;height:26px;color:#fff7;opacity:.8}
+  .clip .thumb .dur{position:absolute;bottom:7px;right:7px;font-size:10px;background:#000b;padding:2px 6px;border-radius:5px;color:#cbd0e6}
+  .clip .thumb .gn{position:absolute;top:7px;left:7px;font-size:9px;font-weight:700;letter-spacing:.5px;background:var(--accdim);color:var(--acc2);padding:2px 7px;border-radius:5px;border:1px solid var(--line2)}
+  .clip .cap{padding:10px 11px;font-size:11.5px;color:var(--mut);line-height:1.45}
+
+  /* bulk sections */
+  .sec-item{border:1px solid var(--line);border-radius:11px;padding:14px;margin-bottom:10px;background:var(--inset);transition:.15s}
+  .sec-item.sel{border-color:var(--acc);background:var(--accdim)}
+  .sec-top{display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+  .cbox{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--line2);flex:none;margin-top:1px;display:grid;place-items:center;transition:.15s}
+  .sec-item.sel .cbox{background:var(--acc);border-color:var(--acc)}
+  .cbox svg{width:12px;height:12px;color:#fff;display:none}
+  .sec-item.sel .cbox svg{display:block}
+  .sec-txt{font-size:13px;line-height:1.5}
+  .sec-time{font-size:10.5px;color:var(--dim);margin-bottom:3px}
+  .suggestion{margin-top:12px;padding:12px 13px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;font-size:12.5px;line-height:1.55;display:none}
+  .sec-item.sel .suggestion.show{display:block}
+  .suggestion .sl{font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--acc2);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .suggestion .approve{margin-top:10px}
+  .pill-ok{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ok)}
+  .pill-ok svg{width:13px;height:13px}
+
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .vchip{font-size:11px;color:var(--mut);background:var(--inset);border:1px solid var(--line);border-radius:7px;padding:5px 10px}
+  .divider{height:1px;background:var(--line);margin:22px 0}
+  .muted{color:var(--dim);font-size:12px}
+  audio{display:none}
+  ::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">I</div><b>Studio Ionique</b><span>Production Suite</span></div>
+  <div class="tabs" id="tabs">
+    <button data-tab="audio" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M5 11a7 7 0 0014 0M12 18v4"/></svg>Audio Gen</button>
+    <button data-tab="video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>Video Gen</button>
+    <button data-tab="broll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20M8 4v16M16 4v16"/></svg>B-roll Gen</button>
+  </div>
+  <div class="hgrow"></div>
+  <div class="status"><span class="d"></span>Engines online</div>
+</header>
+
+<main>
+  <!-- ================= AUDIO ================= -->
+  <section class="tab on" id="tab-audio">
+    <div class="seg" id="audseg">
+      <button data-p="clone" class="on">Create Voice Clone</button>
+      <button data-p="generate">Generate</button>
+      <button data-p="transfer">Transfer</button>
+    </div>
+
+    <!-- clone -->
+    <div class="pane on" id="ap-clone">
+      <div class="h2">Create a voice clone</div>
+      <div class="sub">Train a custom voice model from a clean sample. Used across reels and long-form.</div>
+      <div class="card">
+        <label class="fld">Voice name <span class="req">*</span></label>
+        <input type="text" id="cloneName" placeholder="e.g. Figrd · Founder" />
+        <div style="height:16px"></div>
+        <label class="fld">Voice sample <span class="req">*</span></label>
+        <div class="drop" id="cloneDrop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+          <div><b>Drop audio sample</b> or click to upload</div>
+          <div class="hint">WAV / MP3 · 60s+ clean speech recommended</div>
+        </div>
+        <div class="chiprow">
+          <span class="vchip">Language: English (auto-detect)</span>
+          <span class="vchip">Quality: High fidelity</span>
+        </div>
+        <div style="margin-top:18px"><button class="btn" id="cloneBtn" disabled>Train voice clone</button></div>
+        <div id="cloneProc"></div>
+      </div>
+    </div>
+
+    <!-- generate -->
+    <div class="pane" id="ap-generate">
+      <div class="h2">Generate audio</div>
+      <div class="sub">Synthesize speech from a script in a cloned voice. Best for reels and short hooks.</div>
+      <div class="card">
+        <label class="fld">Voice</label>
+        <select id="genVoice"></select>
+        <div style="height:16px"></div>
+        <label class="fld">Script</label>
+        <textarea id="genText" placeholder="Type the script to speak…">Most founders think AI content means losing their voice. It's the opposite — done right, it sounds more like you than you do on a bad day.</textarea>
+        <div style="margin-top:18px"><button class="btn" id="genBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>Generate</button></div>
+        <div id="genProc"></div>
+      </div>
+    </div>
+
+    <!-- transfer -->
+    <div class="pane" id="ap-transfer">
+      <div class="h2">Voice transfer</div>
+      <div class="sub">Record with full emotion, transfer it into the client's cloned voice. Used for long-form where emotion matters.</div>
+      <div class="card">
+        <label class="fld">Target voice</label>
+        <select id="trVoice"></select>
+        <div style="height:16px"></div>
+        <label class="fld">Recorded audio (with emotion) <span class="req">*</span></label>
+        <div class="drop" id="trDrop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+          <div><b>Drop your recording</b> or click to upload</div>
+          <div class="hint">Your performance is preserved — pacing, emotion, emphasis</div>
+        </div>
+        <div style="margin-top:18px"><button class="btn" id="trBtn" disabled>Transfer voice</button></div>
+        <div id="trProc"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VIDEO ================= -->
+  <section class="tab" id="tab-video">
+    <div class="h2">Generate avatar video</div>
+    <div class="sub">Drive a client avatar with generated audio. Output is a pre-edit render — final cut is assembled in edit.</div>
+
+    <div class="card">
+      <label class="fld"><span class="step-no">1</span>Audio</label>
+      <div class="row2">
+        <select id="vidAudio"></select>
+        <button class="btn ghost" id="vidUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>Upload local</button>
+      </div>
+      <div class="hint">Pulls from your Audio Gen library, or upload a file.</div>
+    </div>
+
+    <div class="card">
+      <label class="fld"><span class="step-no">2</span>Avatar</label>
+      <div class="grid3" id="avatars"></div>
+    </div>
+
+    <div class="card">
+      <label class="fld"><span class="step-no">3</span>Format</label>
+      <div class="fmt" id="fmt">
+        <div class="opt on" data-f="9:16"><div class="box" style="width:24px;height:42px"></div><div><b>9:16</b><span>Reels · Shorts · TikTok</span></div></div>
+        <div class="opt" data-f="16:9"><div class="box" style="width:48px;height:27px"></div><div><b>16:9</b><span>Long-form · YouTube</span></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label class="fld"><span class="step-no">4</span>Transcript <span class="muted" style="font-weight:400">— auto-generated from audio, editable</span></label>
+      <textarea id="vidTranscript" style="min-height:120px">Most founders think AI content means losing their voice. It's the opposite. Done right, it sounds more like you than you do on a bad day — and you never have to block a shoot day again.</textarea>
+    </div>
+
+    <button class="btn" id="vidBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>Generate video</button>
+    <div id="vidProc"></div>
+  </section>
+
+  <!-- ================= BROLL ================= -->
+  <section class="tab" id="tab-broll">
+    <div class="seg" id="brollseg">
+      <button data-p="single" class="on">Describe &amp; Generate</button>
+      <button data-p="bulk">From Transcript (bulk)</button>
+    </div>
+
+    <!-- single -->
+    <div class="pane on" id="bp-single">
+      <div class="h2">Generate b-roll</div>
+      <div class="sub">Describe the shot you need. The engine generates matching b-roll clips.</div>
+      <div class="card">
+        <label class="fld">Describe the video</label>
+        <textarea id="brDesc" placeholder="e.g. slow aerial over a city skyline at dawn, cinematic, warm tones">Close-up of hands typing on a laptop, soft window light, shallow depth of field, modern startup office</textarea>
+        <div class="row2" style="margin-top:14px">
+          <div><label class="fld">Clips</label><select id="brCount"><option>2 clips</option><option selected>3 clips</option><option>4 clips</option></select></div>
+          <div><label class="fld">Duration</label><select><option>5s</option><option selected>8s</option><option>12s</option></select></div>
+        </div>
+        <div style="margin-top:18px"><button class="btn" id="brBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>Generate b-roll</button></div>
+        <div id="brProc"></div>
+      </div>
+    </div>
+
+    <!-- bulk -->
+    <div class="pane" id="bp-bulk">
+      <div class="h2">B-roll from transcript</div>
+      <div class="sub">Paste a transcript. Pick the sections that need b-roll. The engine suggests what each shot should be — you approve, it generates.</div>
+      <div class="card" id="bulkInput">
+        <label class="fld">Video transcript</label>
+        <textarea id="bulkText" style="min-height:120px">We started Studio Ionique because shooting content was killing our clients' momentum. Every video meant booking a studio, lighting, a full day gone. So we built an AI pipeline that clones their voice and generates the avatar. Now a founder records once and we produce a month of content. The results speak for themselves — our clients have tripled their output.</textarea>
+        <div style="margin-top:16px"><button class="btn" id="bulkAnalyze"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>Analyze sections</button></div>
+      </div>
+
+      <div id="bulkSections" style="display:none">
+        <div class="sec-h" style="display:flex;align-items:center;margin:6px 0 14px">
+          <div><div class="h2" style="font-size:15px">Select sections for b-roll</div><div class="muted" style="margin-top:3px">Tap a section to select. Suggestions appear on selection.</div></div>
+          <div style="flex:1"></div>
+          <button class="btn ghost sm" id="suggestBtn">Suggest b-roll for selected</button>
+        </div>
+        <div id="secList"></div>
+        <div style="margin-top:6px"><button class="btn" id="bulkGen" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>Generate approved b-roll</button></div>
+        <div id="bulkProc"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<audio id="aud" src="assets/voice_preview.m4a" preload="metadata"></audio>
+
+<script>
+/* ---------------- shared state ---------------- */
+const VOICES = [{id:'figrd-founder-v3', name:'Figrd · Founder'}, {id:'figrd-cofounder-v2', name:'Figrd · Co-founder'}];
+const LIBRARY = [{id:'lib-001', name:'Founder Explainer — voiceover', voice:'Figrd · Founder'}];
+
+const fmtTime=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+const el=id=>document.getElementById(id);
+
+/* ---------------- tabs + segments ---------------- */
+function switchTab(t){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(t==='video'){ syncAudioDropdowns(); buildAvatars(); }
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+function seg(segId, prefix){
+  document.querySelectorAll('#'+segId+' button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#'+segId+' button').forEach(x=>x.classList.toggle('on',x===b));
+    document.querySelectorAll('[id^="'+prefix+'"]').forEach(p=>p.classList.toggle('on',p.id===prefix+b.dataset.p));
+  });
+}
+seg('audseg','ap-'); seg('brollseg','bp-');
+
+/* ---------------- dropdowns ---------------- */
+function fillVoiceSelects(){
+  const opts=VOICES.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  ['genVoice','trVoice'].forEach(id=>{const s=el(id); if(s) s.innerHTML=opts;});
+}
+function syncAudioDropdowns(){
+  const s=el('vidAudio'); if(!s) return;
+  s.innerHTML=LIBRARY.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+}
+fillVoiceSelects(); syncAudioDropdowns();
+
+/* ---------------- dropzone wiring ---------------- */
+function wireDrop(dropId, btnId){
+  const d=el(dropId);
+  d.onclick=()=>{
+    d.classList.add('has');
+    d.querySelector('div b').textContent='recording_'+Math.floor(Math.random()*900+100)+'.wav';
+    d.querySelector('.hint') && (d.querySelector('.hint').textContent='Loaded · 1 file ready');
+    checkClone();
+    if(btnId==='trBtn') el('trBtn').disabled=false;
+  };
+}
+wireDrop('cloneDrop','cloneBtn'); wireDrop('trDrop','trBtn');
+el('cloneName').oninput=checkClone;
+function checkClone(){ el('cloneBtn').disabled = !(el('cloneName').value.trim() && el('cloneDrop').classList.contains('has')); }
+
+/* ---------------- generic processor ---------------- */
+function runProcess(mountId, steps, doneHtml, cb){
+  const m=el(mountId);
+  m.innerHTML=`<div class="proc"><div class="pl"><span class="spin"></span><span id="${mountId}-pl">${steps[0]}</span></div><div class="pbar"><i id="${mountId}-bar"></i></div><div class="plog mono" id="${mountId}-log"></div></div>`;
+  const bar=el(mountId+'-bar'), pl=el(mountId+'-pl'), log=el(mountId+'-log');
+  let i=0; const n=steps.length; const tick=Math.round(100/n);
+  bar.style.width='8%';
+  const iv=setInterval(()=>{
+    i++;
+    if(i<n){ pl.textContent=steps[i]; log.textContent='› '+steps[i-1]+' ✓'; bar.style.width=Math.min(95,tick*(i+1))+'%'; }
+    else{
+      clearInterval(iv); bar.style.width='100%'; log.textContent='› complete';
+      setTimeout(()=>{ m.innerHTML=doneHtml; cb&&cb(); },450);
+    }
+  }, 750);
+}
+
+function playerHtml(label, dur){
+  return `<div class="result"><div class="rh"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>${label}<span class="tag">pre-edit · 48kHz</span></div>
+    <div class="player"><button onclick="togglePlay(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+    <div class="wv"><img src="assets/waveform.png" alt="waveform"/></div>
+    <div class="meta mono" id="ptime">00:00 / ${dur}</div></div></div>`;
+}
+
+/* audio play (single shared element) */
+const aud=el('aud');
+let curBtn=null;
+function togglePlay(btn){
+  if(curBtn && curBtn!==btn){ curBtn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; }
+  curBtn=btn;
+  if(aud.paused){ aud.play(); btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>'; }
+  else{ aud.pause(); btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; }
+}
+aud.ontimeupdate=()=>{ const p=document.getElementById('ptime'); if(p) p.textContent=`${fmtTime(aud.currentTime)} / ${fmtTime(aud.duration||20)}`; };
+aud.onended=()=>{ if(curBtn) curBtn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; };
+
+/* ---------------- AUDIO actions ---------------- */
+el('cloneBtn').onclick=()=>{
+  const name=el('cloneName').value.trim();
+  runProcess('cloneProc',
+    ['Analysing sample…','Extracting voice features…','Training model…','Validating fidelity…'],
+    `<div class="result"><div class="rh"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>Voice clone ready<span class="tag">fidelity 96.4%</span></div>
+     <div class="muted"><b style="color:var(--txt)">${name}</b> is now available in Generate, Transfer and Video Gen.</div></div>`,
+    ()=>{ const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-'); VOICES.push({id,name}); fillVoiceSelects(); }
+  );
+};
+el('genBtn').onclick=()=>{
+  runProcess('genProc',['Parsing script…','Synthesising speech…','Rendering audio…'],
+    playerHtml('Audio generated','00:20'),
+    ()=>{ LIBRARY.push({id:'lib-'+Date.now(), name:'Generated — '+el('genText').value.slice(0,28)+'…', voice:VOICES.find(v=>v.id===el('genVoice').value).name}); syncAudioDropdowns(); });
+};
+el('trBtn').onclick=()=>{
+  runProcess('trProc',['Aligning recording…','Mapping to target voice…','Transferring with emotion…','Finalising…'],
+    playerHtml('Voice transferred — emotion preserved','00:20'),
+    ()=>{ LIBRARY.push({id:'lib-'+Date.now(), name:'Transfer — '+VOICES.find(v=>v.id===el('trVoice').value).name, voice:VOICES.find(v=>v.id===el('trVoice').value).name}); syncAudioDropdowns(); });
+};
+
+/* ---------------- VIDEO ---------------- */
+let avatar='figrd-founder', format='9:16';
+const AVA=[{id:'figrd-founder',name:'Figrd · Founder',sub:'talking-head',img:'assets/avatar_render.jpg'},
+           {id:'figrd-cofounder',name:'Figrd · Co-founder',sub:'talking-head',ph:'F',grad:'linear-gradient(135deg,#2dd4bf,#0e7490)'},
+           {id:'studio-host',name:'Studio Host',sub:'presenter',ph:'S',grad:'linear-gradient(135deg,#fb7185,#9d174d)'}];
+function buildAvatars(){
+  const w=el('avatars'); if(!w) return;
+  w.innerHTML=AVA.map(a=>`<div class="pick ${a.id===avatar?'on':''}" data-a="${a.id}">
+    ${a.img?`<img src="${a.img}"/>`:`<div class="ph" style="background:${a.grad}">${a.ph}</div>`}
+    <div class="nm">${a.name}<small>${a.sub}</small></div>
+    <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div></div>`).join('');
+  w.querySelectorAll('.pick').forEach(p=>p.onclick=()=>{avatar=p.dataset.a; buildAvatars();});
+}
+el('fmt').querySelectorAll('.opt').forEach(o=>o.onclick=()=>{
+  format=o.dataset.f; el('fmt').querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',x===o));
+});
+el('vidUpload').onclick=()=>{ const opt=document.createElement('option'); opt.textContent='Uploaded — local_audio.wav'; opt.selected=true; el('vidAudio').appendChild(opt); el('vidUpload').innerHTML='✓ Uploaded'; };
+el('vidBtn').onclick=()=>{
+  const a=AVA.find(x=>x.id===avatar);
+  const dims = format==='9:16' ? 'width:240px;aspect-ratio:9/16' : 'width:100%;max-width:560px;aspect-ratio:16/9';
+  const thumb = a.img ? `<img src="${a.img}"/>` : `<div class="ph" style="background:${a.grad};width:100%;height:100%;display:grid;place-items:center;font-size:60px;font-weight:700;color:#fff">${a.ph}</div>`;
+  runProcess('vidProc',
+    ['Loading avatar model…','Aligning lip-sync to audio…','Rendering frames…','Compositing…'],
+    `<div class="result"><div class="rh"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>Video rendered<span class="tag">${format} · ${a.name} · pre-edit</span></div>
+      <div class="vid" style="${dims}">${thumb}<div class="tl mono">PRE-EDIT RENDER</div><div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <div class="muted" style="margin-top:12px">Render complete. Hands off to edit for final cut, b-roll and graphics.</div></div>`
+  );
+};
+
+/* ---------------- BROLL single ---------------- */
+function clipTiles(desc, n){
+  const variants=['wide establishing','medium detail','slow push-in','overhead'];
+  let h='<div class="clips">';
+  for(let i=0;i<n;i++) h+=`<div class="clip"><div class="thumb"><span class="gn">AI · GEN</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="dur mono">0:08</span></div><div class="cap">${desc.slice(0,52)}${desc.length>52?'…':''} · ${variants[i%4]}</div></div>`;
+  return h+'</div>';
+}
+el('brBtn').onclick=()=>{
+  const n=parseInt(el('brCount').value)||3; const desc=el('brDesc').value.trim()||'b-roll clip';
+  runProcess('brProc',['Reading description…','Generating shots…','Rendering clips…'],
+    `<div class="result"><div class="rh"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>${n} b-roll clips generated<span class="tag">ready for edit</span></div>${clipTiles(desc,n)}</div>`);
+};
+
+/* ---------------- BROLL bulk ---------------- */
+const SUGGEST = {
+  0:"Founder at desk looking drained, late evening office, muted tones — visualises the 'momentum killer'.",
+  1:"Quick montage: studio lights switching on, camera rig, clapperboard — the production burden.",
+  2:"Clean UI animation of the AI pipeline: waveform → avatar → render, glowing nodes.",
+  3:"Calendar filling with content tiles, time-lapse feel — 'a month of content from one session'.",
+  4:"Upward line chart over a creator's profile, subtle confetti — 'tripled their output'."
+};
+function splitSentences(t){ return t.match(/[^.!?]+[.!?]+/g)?.map(s=>s.trim()).filter(Boolean)||[t]; }
+el('bulkAnalyze').onclick=()=>{
+  const sents=splitSentences(el('bulkText').value);
+  const list=el('secList'); list.innerHTML='';
+  sents.forEach((s,i)=>{
+    const t0=fmtTime(i*9), t1=fmtTime(i*9+9);
+    list.innerHTML+=`<div class="sec-item" data-i="${i}">
+      <div class="sec-top">
+        <div class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div style="flex:1"><div class="sec-time mono">${t0} – ${t1}</div><div class="sec-txt">${s}</div></div>
+      </div>
+      <div class="suggestion"><div class="sl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12c.5.5 1 1.5 1 2h6c0-.5.5-1.5 1-2a7 7 0 00-4-12z"/></svg>SUGGESTED B-ROLL</div><span class="stext">…</span>
+        <div class="approve"><button class="btn ghost sm" onclick="approveSec(this,${i})">Approve shot</button></div></div>
+    </div>`;
+  });
+  el('bulkInput').style.opacity='.5';
+  el('bulkSections').style.display='block';
+  list.querySelectorAll('.sec-item').forEach(it=>{
+    it.querySelector('.sec-top').onclick=()=>{ it.classList.toggle('sel'); updateGenBtn(); };
+  });
+  el('bulkSections').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+el('suggestBtn').onclick=()=>{
+  const sel=document.querySelectorAll('.sec-item.sel');
+  if(!sel.length){ alert('Select at least one section first.'); return; }
+  sel.forEach(it=>{
+    const i=+it.dataset.i; const sug=it.querySelector('.suggestion');
+    sug.querySelector('.stext').textContent=SUGGEST[i]||'Contextual b-roll matched to this line — cinematic, on-brand.';
+    sug.classList.add('show');
+  });
+};
+const approved=new Set();
+function approveSec(btn,i){
+  approved.add(i);
+  btn.outerHTML='<span class="pill-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Approved</span>';
+  updateGenBtn();
+}
+function updateGenBtn(){ el('bulkGen').disabled = approved.size===0; el('bulkGen').textContent='';
+  el('bulkGen').innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>Generate approved b-roll${approved.size?` (${approved.size})`:''}`; }
+el('bulkGen').onclick=()=>{
+  const n=approved.size;
+  runProcess('bulkProc',['Queuing '+n+' shots…','Generating b-roll…','Rendering clips…','Matching to timeline…'],
+    `<div class="result"><div class="rh"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>${n} b-roll clips generated &amp; matched<span class="tag">aligned to transcript</span></div>${clipTiles('Matched to transcript section',n)}</div>`);
+};
+
+/* init */
+buildAvatars();
+</script>
+</body>
+</html>
